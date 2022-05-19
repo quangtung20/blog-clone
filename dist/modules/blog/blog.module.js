@@ -10,17 +10,15 @@ exports.BlogModule = void 0;
 const common_1 = require("@nestjs/common");
 const blog_service_1 = require("./blog.service");
 const blog_controller_1 = require("./blog.controller");
-const mongoose_1 = require("@nestjs/mongoose");
-const blog_schema_1 = require("../../database/schemas/blog.schema");
 const auth_module_1 = require("../auth/auth.module");
-const comment_schema_1 = require("../../database/schemas/comment.schema");
+const typeorm_1 = require("@nestjs/typeorm");
+const blog_entity_1 = require("../../database/entities/blog.entity");
 let BlogModule = class BlogModule {
 };
 BlogModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            mongoose_1.MongooseModule.forFeature([{ name: blog_schema_1.Blog.name, schema: blog_schema_1.BlogSchema }]),
-            mongoose_1.MongooseModule.forFeature([{ name: comment_schema_1.Comment.name, schema: comment_schema_1.CommentSchema }]),
+            typeorm_1.TypeOrmModule.forFeature([blog_entity_1.Blog]),
             auth_module_1.AuthModule,
         ],
         providers: [blog_service_1.BlogService],

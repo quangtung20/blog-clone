@@ -14,22 +14,16 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
 const common_1 = require("@nestjs/common");
-const mongoose_1 = require("@nestjs/mongoose");
+const typeorm_1 = require("@nestjs/typeorm");
 const bcrypt = require("bcrypt");
-const mongoose_2 = require("mongoose");
-const user_schema_1 = require("../../database/schemas/user.schema");
+const user_entity_1 = require("../../database/entities/user.entity");
+const typeorm_2 = require("typeorm");
 let UserService = class UserService {
-    constructor(userModel) {
-        this.userModel = userModel;
+    constructor(userRepository) {
+        this.userRepository = userRepository;
     }
     async getUser(id) {
-        try {
-            const user = await this.userModel.findOne({ _id: id });
-            return Object.assign(Object.assign({}, user._doc), { _id: id });
-        }
-        catch (error) {
-            throw new common_1.InternalServerErrorException(error.message);
-        }
+        return await this.userRepository.findOne(id);
     }
     async resetPassword(user, password) {
         if (!user) {
@@ -40,22 +34,16 @@ let UserService = class UserService {
                 msg: `Quick login account with ${user.type} can't use this function.`
             });
         }
-        try {
-            const passwordHash = await bcrypt.hash(password, 12);
-            await this.userModel.findOneAndUpdate({ _id: user._id }, { password: passwordHash });
-        }
-        catch (error) {
-            throw new common_1.InternalServerErrorException({ msg: error.message });
-        }
+        const passwordHash = await bcrypt.hash(password, 12);
+        await this.userRepository.update({ id: user.id }, { password: passwordHash });
+        return { msg: 'success' };
     }
-    async updateUser(user, avatar, name) {
+    async updateUser(user, data) {
         if (!user) {
             throw new common_1.BadRequestException({ msg: "Invalid Authentication." });
         }
         try {
-            await this.userModel.findByIdAndUpdate({ _id: user._id }, {
-                avatar, name
-            });
+            await this.userRepository.update({ id: user.id }, data);
             return { msg: "Update Success!" };
         }
         catch (error) {
@@ -65,8 +53,8 @@ let UserService = class UserService {
 };
 UserService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model])
+    __param(0, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
+    __metadata("design:paramtypes", [typeorm_2.Repository])
 ], UserService);
 exports.UserService = UserService;
 //# sourceMappingURL=user.service.js.map

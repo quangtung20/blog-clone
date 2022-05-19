@@ -2,69 +2,36 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Request, Response } from 'express';
 import { OAuth2Client } from 'google-auth-library';
-import { Model } from "mongoose";
-import { INewUser, IUser } from 'src/config/interface';
-import { User, UserDocument } from 'src/database/schemas/user.schema';
+import { INewUser } from 'src/config/interface';
 import { ShareService } from '../share/share.service';
+import { User } from 'src/database/entities/user.entity';
+import { Repository } from 'typeorm';
 export declare class AuthService {
     private jwtService;
     private configService;
     private shareService;
-    private userModel;
-    constructor(jwtService: JwtService, configService: ConfigService, shareService: ShareService, userModel: Model<UserDocument>);
+    private userRepository;
+    constructor(jwtService: JwtService, configService: ConfigService, shareService: ShareService, userRepository: Repository<User>);
     client: OAuth2Client;
     clientUrl: any;
     register(newUserDto: INewUser): Promise<{
         msg: string;
     }>;
-    active(active_token: string): Promise<{
-        msg: string;
-    }>;
     login(account: string, password: string, res: Response): Promise<{
         msg: string;
         access_token: string;
-        user: {
-            password: string;
-        };
+        user: any;
     }>;
-    loginUser(user: IUser, password: string, res: Response): Promise<{
+    loginUser(user: any, password: string, res: Response): Promise<{
         msg: string;
         access_token: string;
-        user: {
-            password: string;
-        };
+        user: any;
     }>;
     logout(res: Response): Promise<{
         msg: string;
     }>;
     refreshToken(req: Request): Promise<{
         access_token: string;
-        user: User & import("mongoose").Document<any, any, any> & {
-            _id: any;
-        };
-    }>;
-    googleLogin(id_token: string, res: Response): Promise<{
-        msg: string;
-        access_token: string;
-        user: {
-            password: string;
-        };
-    }>;
-    registerUser(user: INewUser, res: Response): Promise<{
-        msg: string;
-        access_token: string;
-        user: {
-            password: string;
-        };
-    }>;
-    facebookLogin(accessToken: string, userID: string, res: Response): Promise<{
-        msg: string;
-        access_token: string;
-        user: {
-            password: string;
-        };
-    }>;
-    forgotPassword(account: string): Promise<{
-        msg: string;
+        user: User;
     }>;
 }

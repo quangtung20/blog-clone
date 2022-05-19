@@ -19,12 +19,12 @@ export class AuthController {
         return this.authService.register(newUserDto)
     }
 
-    @Post('/active')
-    active(
-        @Body('active_token') active_token: string
-    ) {
-        return this.authService.active(active_token)
-    }
+    // @Post('/active')
+    // active(
+    //     @Body('active_token') active_token: string
+    // ) {
+    //     return this.authService.active(active_token)
+    // }
 
     @Post('/login')
     login(
@@ -47,29 +47,29 @@ export class AuthController {
         return this.authService.refreshToken(req);
     }
 
-    @Post('/google_login')
-    googleLogin(
-        @Body('id_token') id_token: string,
-        @Res({ passthrough: true }) res: Response
-    ) {
-        return this.authService.googleLogin(id_token, res)
-    }
+    // @Post('/google_login')
+    // googleLogin(
+    //     @Body('id_token') id_token: string,
+    //     @Res({ passthrough: true }) res: Response
+    // ) {
+    //     return this.authService.googleLogin(id_token, res)
+    // }
 
-    @Post('/facebook_login')
-    facebookLogin(
-        @Body('accessToken') accessToken:string,
-        @Body('userID') userId:string,
-        @Res({ passthrough: true }) res: Response
-    ){
-        return this.authService.facebookLogin(accessToken,userId,res)
-    }
+    // @Post('/facebook_login')
+    // facebookLogin(
+    //     @Body('accessToken') accessToken:string,
+    //     @Body('userID') userId:string,
+    //     @Res({ passthrough: true }) res: Response
+    // ){
+    //     return this.authService.facebookLogin(accessToken,userId,res)
+    // }
 
-    @Post('/forgot_password')
-    forgotPassowrd(
-        @Body('account') account: string
-    ) {
-        return this.authService.forgotPassword(account)
-    }
+    // @Post('/forgot_password')
+    // forgotPassowrd(
+    //     @Body('account') account: string
+    // ) {
+    //     return this.authService.forgotPassword(account)
+    // }
 
 
 }

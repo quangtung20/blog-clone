@@ -18,6 +18,6 @@ __decorate([
     (0, class_validator_1.MaxLength)(30),
     (0, class_validator_1.MinLength)(2),
     __metadata("design:type", String)
-], CreateCategoryDto.prototype, "name", void 0);
+], CreateCategoryDto.prototype, "title", void 0);
 exports.CreateCategoryDto = CreateCategoryDto;
 //# sourceMappingURL=create-category.dto.js.map

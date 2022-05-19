@@ -1,28 +1,18 @@
-/// <reference types="mongoose/types/pipelinestage" />
-/// <reference types="mongoose/types/connection" />
-/// <reference types="mongoose/types/cursor" />
-/// <reference types="mongoose/types/document" />
-/// <reference types="mongoose/types/error" />
-/// <reference types="mongoose/types/mongooseoptions" />
-/// <reference types="mongoose/types/schemaoptions" />
-/// <reference types="mongoose" />
-import { IUser } from 'src/config/interface';
 import { CategoryService } from './category.service';
+import { CreateCategoryDto } from './dto/create-category.dto';
 export declare class CategoryController {
     private readonly categoryService;
     constructor(categoryService: CategoryService);
     getCategories(): Promise<{
-        categories: (import("mongoose").Document<unknown, any, import("../../database/schemas/category.schema").CategoryDocument> & import("../../database/schemas/category.schema").Category & Document & {
-            _id: import("mongoose").Types.ObjectId;
-        })[];
+        categories: import("../../database/entities/category.entity").Category[];
     }>;
-    createCategory(user: IUser, name: string): Promise<{
-        newCategory: import("mongoose").Document<unknown, any, import("../../database/schemas/category.schema").CategoryDocument> & import("../../database/schemas/category.schema").Category & Document & {
-            _id: import("mongoose").Types.ObjectId;
-        };
-    }>;
-    updateCategory(id: string, name: string): Promise<{
+    createCategory(user: any, data: CreateCategoryDto): Promise<{
         msg: string;
     }>;
-    deleteCategory(id: string): Promise<void>;
+    updateCategory(id: string, title: string): Promise<{
+        msg: string;
+    }>;
+    deleteCategory(id: string): Promise<{
+        msg: string;
+    }>;
 }

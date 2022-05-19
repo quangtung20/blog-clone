@@ -10,9 +10,9 @@ exports.AuthModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const jwt_1 = require("@nestjs/jwt");
-const mongoose_1 = require("@nestjs/mongoose");
 const passport_1 = require("@nestjs/passport");
-const user_schema_1 = require("../../database/schemas/user.schema");
+const typeorm_1 = require("@nestjs/typeorm");
+const user_entity_1 = require("../../database/entities/user.entity");
 const jwt_strategy_1 = require("../../config/jwt.strategy");
 const share_module_1 = require("../share/share.module");
 const auth_controller_1 = require("./auth.controller");
@@ -24,7 +24,6 @@ AuthModule = __decorate([
         imports: [
             passport_1.PassportModule.register({ defaultStrategy: 'jwt' }),
             share_module_1.ShareModule,
-            mongoose_1.MongooseModule.forFeature([{ name: user_schema_1.User.name, schema: user_schema_1.UserSchema }]),
             jwt_1.JwtModule.registerAsync({
                 imports: [
                     config_1.ConfigModule,
@@ -37,6 +36,7 @@ AuthModule = __decorate([
                     },
                 })
             }),
+            typeorm_1.TypeOrmModule.forFeature([user_entity_1.User])
         ],
         providers: [auth_service_1.AuthService, jwt_strategy_1.JwtStrategy],
         controllers: [auth_controller_1.AuthController],

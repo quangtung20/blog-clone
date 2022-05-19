@@ -1,26 +1,17 @@
 import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
+import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { Model } from "mongoose";
-import { User, UserDocument } from 'src/database/schemas/user.schema';
-
+import { User } from 'src/database/entities/user.entity';
+import { Repository } from 'typeorm';
 @Injectable()
 export class UserService {
   constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>
+    @InjectRepository(User) private userRepository:Repository<User>
   ) { }
 
 
   async getUser(id) {
-    try {
-      const user:any = await this.userModel.findOne({_id:id});
-      return {
-        ...user._doc,
-        _id:id
-      };
-    } catch (error) {
-      throw new InternalServerErrorException(error.message)
-    }
+      return await this.userRepository.findOne(id);
   }
 
   async resetPassword(user, password: string) {
@@ -33,27 +24,23 @@ export class UserService {
         msg: `Quick login account with ${user.type} can't use this function.`
       });
     }
-    try {
-      const passwordHash = await bcrypt.hash(password, 12);
-      await this.userModel.findOneAndUpdate({ _id: user._id }, { password: passwordHash });
+    const passwordHash = await bcrypt.hash(password, 12);
+    await this.userRepository.update({id:user.id}, { password: passwordHash });
 
-    } catch (error) {
-      throw new InternalServerErrorException({ msg: error.message })
-    }
+    return {msg:'success'};
   }
 
-  async updateUser(user, avatar: string, name: string) {
+  async updateUser(user,data) {
     if (!user) {
       throw new BadRequestException({ msg: "Invalid Authentication." });
     }
     try {
-      await this.userModel.findByIdAndUpdate({ _id: user._id }, {
-        avatar, name
-      })
+      await this.userRepository.update({ id:user.id }, data)
 
       return { msg: "Update Success!" }
     } catch (error) {
       throw new InternalServerErrorException({ msg: error.message })
     }
   }
+
 }

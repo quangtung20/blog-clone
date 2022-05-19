@@ -1,24 +1,32 @@
 import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Model } from "mongoose";
 import { IUser } from 'src/config/interface';
-import { Category, CategoryDocument } from 'src/database/schemas/category.schema';
+import { Category } from 'src/database/entities/category.entity';
+import { Repository } from 'typeorm';
 @Injectable()
 export class CategoryService {
   constructor(
-    @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>
+    @InjectRepository(Category) private categoryRepository:Repository<Category>
   ) { }
 
 
-  async createCategory(user: IUser, name: string) {
-    try {
-      const check = await this.categoryModel.findOne({ name });
-      if (check) {
-        throw new BadRequestException({ msg: 'This category is already exists' });
-      }
-      const newCat = await this.categoryModel.create({ name })
+  async createCategory(data) {
 
-      return { newCategory: newCat };
+    const {title} = data; 
+
+    const check = await this.categoryRepository.findOne( {title} ).catch((error)=>{
+      throw new InternalServerErrorException(error.message);
+    });
+    
+    if (check) {
+      throw new BadRequestException({ msg: 'This category is already exists' });
+    }
+
+    try {
+      await this.categoryRepository.save({title});
+      return { msg:'done' };
 
     } catch (error) {
       throw new InternalServerErrorException({ msg: error.message });
@@ -27,19 +35,25 @@ export class CategoryService {
 
   async getCategories() {
     try {
-      const categories = await this.categoryModel.find().sort('-createdAt');
+      const categories = await this.categoryRepository.find()
       return { categories };
     } catch (error) {
       throw new InternalServerErrorException({ msg: error.message });
     }
   }
 
-  async updateCategory(id: string, name: string) {
+  async updateCategory(id: string, title: string) {
+    
+    const check = await this.categoryRepository.findOne(id);
+    if(!check){
+      throw new BadRequestException('Category does not exist.');
+    }
+
     try {
-      const category = await this.categoryModel.findByIdAndUpdate({
-        _id: id
+      await this.categoryRepository.update({
+        id: id
       }, {
-        name: name.toLowerCase()
+        title: title.toLowerCase()
       });
 
       return { msg: 'Update Success!' };
@@ -50,7 +64,8 @@ export class CategoryService {
 
   async deleteCategory(id: string) {
     try {
-      await this.categoryModel.findByIdAndDelete(id);
+      await this.categoryRepository.delete(id);
+      return {msg:'success'};
     } catch (error) {
       throw new InternalServerErrorException({ msg: error.message });
     }

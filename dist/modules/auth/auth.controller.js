@@ -22,9 +22,6 @@ let AuthController = class AuthController {
     register(newUserDto) {
         return this.authService.register(newUserDto);
     }
-    active(active_token) {
-        return this.authService.active(active_token);
-    }
     login(account, password, res) {
         return this.authService.login(account, password, res);
     }
@@ -34,15 +31,6 @@ let AuthController = class AuthController {
     refreshToken(req) {
         return this.authService.refreshToken(req);
     }
-    googleLogin(id_token, res) {
-        return this.authService.googleLogin(id_token, res);
-    }
-    facebookLogin(accessToken, userId, res) {
-        return this.authService.facebookLogin(accessToken, userId, res);
-    }
-    forgotPassowrd(account) {
-        return this.authService.forgotPassword(account);
-    }
 };
 __decorate([
     (0, common_1.Post)('/register'),
@@ -51,13 +39,6 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "register", null);
-__decorate([
-    (0, common_1.Post)('/active'),
-    __param(0, (0, common_1.Body)('active_token')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
-], AuthController.prototype, "active", null);
 __decorate([
     (0, common_1.Post)('/login'),
     __param(0, (0, common_1.Body)('account')),
@@ -81,30 +62,6 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "refreshToken", null);
-__decorate([
-    (0, common_1.Post)('/google_login'),
-    __param(0, (0, common_1.Body)('id_token')),
-    __param(1, (0, common_1.Res)({ passthrough: true })),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
-    __metadata("design:returntype", void 0)
-], AuthController.prototype, "googleLogin", null);
-__decorate([
-    (0, common_1.Post)('/facebook_login'),
-    __param(0, (0, common_1.Body)('accessToken')),
-    __param(1, (0, common_1.Body)('userID')),
-    __param(2, (0, common_1.Res)({ passthrough: true })),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, Object]),
-    __metadata("design:returntype", void 0)
-], AuthController.prototype, "facebookLogin", null);
-__decorate([
-    (0, common_1.Post)('/forgot_password'),
-    __param(0, (0, common_1.Body)('account')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
-], AuthController.prototype, "forgotPassowrd", null);
 AuthController = __decorate([
     (0, common_1.Controller)(''),
     __metadata("design:paramtypes", [auth_service_1.AuthService])

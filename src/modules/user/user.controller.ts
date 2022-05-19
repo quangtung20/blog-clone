@@ -32,10 +32,9 @@ export class UserController {
   @UseGuards(RoleGuard('user'))
   updateUser(
     @GetUser() user: any,
-    @Body('avatar') avatar: string,
-    @Body('name') name: string
+    @Body() data: any,
   ) {
-    return this.userService.updateUser(user, avatar, name);
+    return this.userService.updateUser(user, data);
   }
 
 }

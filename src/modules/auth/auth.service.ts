@@ -8,9 +8,12 @@ import { JWT, OAuth2Client } from 'google-auth-library';
 import { Model } from "mongoose";
 import { INewUser, IUser } from 'src/config/interface';
 import sendEmail from 'src/config/sendMail';
-import { User, UserDocument } from 'src/database/schemas/user.schema';
+// import { User, UserDocument } from 'src/database/schemas/user.schema';
 import fetch from 'node-fetch';
 import { ShareService } from '../share/share.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from 'src/database/entities/user.entity';
+import { Repository } from 'typeorm';
 
 
 @Injectable()
@@ -19,7 +22,8 @@ export class AuthService {
         private jwtService: JwtService,
         private configService: ConfigService,
         private shareService:ShareService,
-        @InjectModel(User.name) private userModel: Model<UserDocument>
+        // @InjectModel(User.name) private userModel: Model<UserDocument>
+        @InjectRepository(User) private userRepository:Repository<User>
     ) { }
 
     client = new OAuth2Client(`${process.env.MAIL_CLIENT_ID}`);
@@ -29,7 +33,7 @@ export class AuthService {
         try {
             const { name, account, password } = newUserDto;
 
-            const user = await this.userModel.findOne({ account });
+            const user = await this.userRepository.findOne({ account });
             if (user) {
                 throw new BadRequestException({ msg: 'Email is already exist' })
             }
@@ -42,7 +46,9 @@ export class AuthService {
 
             const url = `${this.clientUrl}/active/${active_token}`
 
-            sendEmail(account, url, "verify your email address");
+            await this.userRepository.save(newUser);
+
+            // sendEmail(account, url, "verify your email address");
             return {
                 msg: 'Success! Please check your email.',
             }
@@ -51,36 +57,36 @@ export class AuthService {
         }
     }
 
-    async active(active_token: string) {
-        try {
-            const decode = await this.jwtService.verify(active_token);
+    // async active(active_token: string) {
+    //     try {
+    //         const decode = await this.jwtService.verify(active_token);
 
-            const { newUser } = decode;
+    //         const { newUser } = decode;
 
-            if (!newUser) {
-                throw new BadRequestException('Invalid authentication.');
-            }
+    //         if (!newUser) {
+    //             throw new BadRequestException('Invalid authentication.');
+    //         }
 
-            const user = this.userModel.create(newUser);
+    //         const user = this.userModel.create(newUser);
 
-            return ({ msg: "Account has been activated!" })
+    //         return ({ msg: "Account has been activated!" })
 
-        } catch (error) {
-            let errMsg;
-            if (error.code === 11000) {
-                errMsg = Object.keys(error.keyValue)[0] + " already exists."
-            } else {
-                let name = Object.keys(error.errors)[0]
-                errMsg = error.errors[`${name}`].message
-            }
+    //     } catch (error) {
+    //         let errMsg;
+    //         if (error.code === 11000) {
+    //             errMsg = Object.keys(error.keyValue)[0] + " already exists."
+    //         } else {
+    //             let name = Object.keys(error.errors)[0]
+    //             errMsg = error.errors[`${name}`].message
+    //         }
 
-            throw new InternalServerErrorException({ msg: error.message })
-        }
-    }
+    //         throw new InternalServerErrorException({ msg: error.message })
+    //     }
+    // }
 
     async login(account: string, password: string, res: Response) {
         try {
-            const user:IUser = await this.userModel.findOne({ account });
+            const user = await this.userRepository.findOne({account});
             if (!user) {
                 throw new BadRequestException({ msg: 'This account does not exits.' });
             }
@@ -91,36 +97,32 @@ export class AuthService {
 
     }
 
-    async loginUser(user:IUser, password: string, res: Response) {
+    async loginUser(user, password: string, res: Response) {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             throw new BadRequestException({ msg: "Password is incorrect." });
         }
 
-        const access_token = await this.jwtService.sign({ id: user._id });
-        const refresh_token = await this.jwtService.sign({ id: user._id });
+        const access_token = await this.jwtService.sign({ id: user.id });
+        const refresh_token = await this.jwtService.sign({ id: user.id });
 
 
         res.cookie('refreshtoken', refresh_token, {
             httpOnly: true,
             path: `/api/refresh_token`,
             maxAge: 30 * 24 * 60 * 60 * 1000
-        })
+        });
 
         return {
             msg: 'Login Success!',
             access_token,
-            user: { ...user._doc, password: '' }
+            user: { ...user, password: '' }
         }
     }
 
     async logout(res: Response) {
-        try {
-            res.clearCookie('refreshtoken', { path: '/auth/refresh_token' })
+            res.clearCookie('refreshtoken', { path: '/api/refresh_token' });
             return { msg: 'Logged out!' };
-        } catch (error) {
-            throw new InternalServerErrorException(error.message);
-        }
     }
 
     async refreshToken(req: Request) {
@@ -133,129 +135,129 @@ export class AuthService {
                 throw new BadRequestException({ msg: "Please login now!" })
             }
 
-            const user = await this.userModel.findById(decoded.id).select("-password")
+            const user = await this.userRepository.findOne({id:decoded.id})
             if (!user) throw new BadRequestException({ msg: "This account does not exist." })
 
-            const access_token = this.jwtService.sign({ id: user._id })
+            const access_token = this.jwtService.sign({ id: user.id })
             return { access_token, user }
         } catch (error) {
             throw new BadRequestException(error.message);
         }
     }
 
-    async googleLogin(id_token: string, res: Response) {
-        const verify = await this.client.verifyIdToken({
-            idToken: id_token,
-            audience: this.configService.get('MAIL_CLIENT_ID')
-        });
+    // async googleLogin(id_token: string, res: Response) {
+    //     const verify = await this.client.verifyIdToken({
+    //         idToken: id_token,
+    //         audience: this.configService.get('MAIL_CLIENT_ID')
+    //     });
 
 
-        const { email, email_verified, name, picture } = verify.getPayload();
+    //     const { email, email_verified, name, picture } = verify.getPayload();
 
-        if (!email_verified) {
-            throw new BadRequestException({
-                msg: 'Email verification failed.'
-            });
-        }
+    //     if (!email_verified) {
+    //         throw new BadRequestException({
+    //             msg: 'Email verification failed.'
+    //         });
+    //     }
 
-        const password = email + 'google secrect password';
-        const passwordHash = await bcrypt.hash(password, 12);
+    //     const password = email + 'google secrect password';
+    //     const passwordHash = await bcrypt.hash(password, 12);
 
-        const user:IUser = await this.userModel.findOne({ account: email });
-        if (user) {
-            if (user.type !== 'google') {
-                throw new BadRequestException({ msg: 'your account is register before by another method, please try different ways' })
-            }
-            return this.loginUser(user, password, res)
-        } else {
-            const user = {
-                name,
-                account: email,
-                password: passwordHash,
-                avatar: picture,
-                type: 'google'
-            };
-            return this.registerUser(user, res);
-        }
-    }
+    //     const user:IUser = await this.userModel.findOne({ account: email });
+    //     if (user) {
+    //         if (user.type !== 'google') {
+    //             throw new BadRequestException({ msg: 'your account is register before by another method, please try different ways' })
+    //         }
+    //         return this.loginUser(user, password, res)
+    //     } else {
+    //         const user = {
+    //             name,
+    //             account: email,
+    //             password: passwordHash,
+    //             avatar: picture,
+    //             type: 'google'
+    //         };
+    //         return this.registerUser(user, res);
+    //     }
+    // }
 
     
 
-    async registerUser(user: INewUser, res: Response) {
-        const newUser:IUser = await this.userModel.create(user);
+    // async registerUser(user: INewUser, res: Response) {
+    //     const newUser:IUser = await this.userModel.create(user);
 
-        const access_token = await this.jwtService.sign({ id: newUser._id });
-        const refresh_token = await this.jwtService.sign({ id: newUser._id });
+    //     const access_token = await this.jwtService.sign({ id: newUser._id });
+    //     const refresh_token = await this.jwtService.sign({ id: newUser._id });
 
-        res.cookie('refreshtoken', refresh_token, {
-            httpOnly: true,
-            path: `/api/refresh_token`,
-            maxAge: 30 * 24 * 60 * 60 * 1000 // 30days
-        })
+    //     res.cookie('refreshtoken', refresh_token, {
+    //         httpOnly: true,
+    //         path: `/api/refresh_token`,
+    //         maxAge: 30 * 24 * 60 * 60 * 1000 // 30days
+    //     })
 
-        return ({
-            msg: 'Login Success!',
-            access_token,
-            user: { ...newUser._doc, password: '' }
-        })
-    }
-    async facebookLogin(accessToken:string,userID:string,res:Response){
-        try {
-            const URL:string = `
-              https://graph.facebook.com/v3.0/${userID}/?fields=id,name,email,picture&access_token=${accessToken}
-            `
+    //     return ({
+    //         msg: 'Login Success!',
+    //         access_token,
+    //         user: { ...newUser._doc, password: '' }
+    //     })
+    // }
+    // async facebookLogin(accessToken:string,userID:string,res:Response){
+    //     try {
+    //         const URL:string = `
+    //           https://graph.facebook.com/v3.0/${userID}/?fields=id,name,email,picture&access_token=${accessToken}
+    //         `
       
-            const data = await fetch(URL)
-            .then(res => res.json())
-            .then(res => { return res })
+    //         const data = await fetch(URL)
+    //         .then(res => res.json())
+    //         .then(res => { return res })
       
-            const { email, name, picture } = data
+    //         const { email, name, picture } = data
       
-            const password = email + 'your facebook secrect password'
-            const passwordHash = await bcrypt.hash(password, 12)
+    //         const password = email + 'your facebook secrect password'
+    //         const passwordHash = await bcrypt.hash(password, 12)
       
-            const user:IUser = await this.userModel.findOne({account: email})
+    //         const user:IUser = await this.userModel.findOne({account: email})
       
-            if(user){
-              return this.loginUser(user, password, res);
-            }else{
-              const user = {
-                name, 
-                account: email, 
-                password: passwordHash, 
-                avatar: picture.data.url,
-                type: 'login'
-              }
-              return this.registerUser(user, res);
-            } 
+    //         if(user){
+    //           return this.loginUser(user, password, res);
+    //         }else{
+    //           const user = {
+    //             name, 
+    //             account: email, 
+    //             password: passwordHash, 
+    //             avatar: picture.data.url,
+    //             type: 'login'
+    //           }
+    //           return this.registerUser(user, res);
+    //         } 
       
-          } catch (error) {
-            throw new InternalServerErrorException({msg:error.message});
-          }
-    }
+    //       } catch (error) {
+    //         throw new InternalServerErrorException({msg:error.message});
+    //       }
+    // }
 
-    async forgotPassword(account:string) {
-        try {
-            const user = await this.userModel.findOne({ account })
-            if (!user) {
-                throw new BadRequestException({ msg: 'This account does not exist.' });
-            }
+    // async forgotPassword(account:string) {
+    //     try {
+    //         const user = await this.userModel.findOne({ account })
+    //         if (!user) {
+    //             throw new BadRequestException({ msg: 'This account does not exist.' });
+    //         }
 
-            if (user.type !== 'register') {
-                throw new BadRequestException({
-                    msg: `Quick login account with ${user.type} can't use this function.`
-                });
-            }
-            const access_token = await this.jwtService.sign({ id: user._id });
+    //         if (user.type !== 'register') {
+    //             throw new BadRequestException({
+    //                 msg: `Quick login account with ${user.type} can't use this function.`
+    //             });
+    //         }
+    //         const access_token = await this.jwtService.sign({ id: user._id });
 
-            const url = `${this.clientUrl}/reset_password/${access_token}`;
-            sendEmail(account, url, "verify your email address");
+    //         const url = `${this.clientUrl}/reset_password/${access_token}`;
+    //         sendEmail(account, url, "verify your email address");
 
-            return { msg: "Success! Please check your email." }
+    //         return { msg: "Success! Please check your email." }
 
-        } catch (error) {
-            throw new InternalServerErrorException({ msg: error.message });
-        }
-    }
+    //     } catch (error) {
+    //         throw new InternalServerErrorException({ msg: error.message });
+    //     }
+    // }
 
 }

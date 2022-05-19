@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const get_user_decorator_1 = require("../../decorators/get-user.decorator");
 const role_guard_1 = require("../../guards/role.guard");
 const category_service_1 = require("./category.service");
+const create_category_dto_1 = require("./dto/create-category.dto");
 let CategoryController = class CategoryController {
     constructor(categoryService) {
         this.categoryService = categoryService;
@@ -24,11 +25,11 @@ let CategoryController = class CategoryController {
     getCategories() {
         return this.categoryService.getCategories();
     }
-    createCategory(user, name) {
-        return this.categoryService.createCategory(user, name);
+    createCategory(user, data) {
+        return this.categoryService.createCategory(data);
     }
-    updateCategory(id, name) {
-        return this.categoryService.updateCategory(id, name);
+    updateCategory(id, title) {
+        return this.categoryService.updateCategory(id, title);
     }
     deleteCategory(id) {
         return this.categoryService.deleteCategory(id);
@@ -44,16 +45,16 @@ __decorate([
     (0, common_1.Post)(),
     (0, common_1.UseGuards)((0, role_guard_1.default)('admin')),
     __param(0, (0, get_user_decorator_1.GetUser)()),
-    __param(1, (0, common_1.Body)('name')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:paramtypes", [Object, create_category_dto_1.CreateCategoryDto]),
     __metadata("design:returntype", void 0)
 ], CategoryController.prototype, "createCategory", null);
 __decorate([
     (0, common_1.Patch)(':id'),
     (0, common_1.UseGuards)((0, role_guard_1.default)('admin')),
     __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)('name')),
+    __param(1, (0, common_1.Body)('title')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)

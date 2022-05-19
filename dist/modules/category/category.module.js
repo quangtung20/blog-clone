@@ -10,15 +10,15 @@ exports.CategoryModule = void 0;
 const common_1 = require("@nestjs/common");
 const category_service_1 = require("./category.service");
 const category_controller_1 = require("./category.controller");
+const typeorm_1 = require("@nestjs/typeorm");
 const auth_module_1 = require("../auth/auth.module");
-const mongoose_1 = require("@nestjs/mongoose");
-const category_schema_1 = require("../../database/schemas/category.schema");
+const category_entity_1 = require("../../database/entities/category.entity");
 let CategoryModule = class CategoryModule {
 };
 CategoryModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            mongoose_1.MongooseModule.forFeature([{ name: category_schema_1.Category.name, schema: category_schema_1.CategorySchema }]),
+            typeorm_1.TypeOrmModule.forFeature([category_entity_1.Category]),
             auth_module_1.AuthModule,
         ],
         controllers: [category_controller_1.CategoryController],

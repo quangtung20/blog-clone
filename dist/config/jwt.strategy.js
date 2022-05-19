@@ -15,23 +15,23 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.JwtStrategy = void 0;
 const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
+const typeorm_1 = require("@nestjs/typeorm");
 const passport_jwt_1 = require("passport-jwt");
 const config_1 = require("@nestjs/config");
-const mongoose_1 = require("@nestjs/mongoose");
-const user_schema_1 = require("../database/schemas/user.schema");
-const mongoose_2 = require("mongoose");
+const user_entity_1 = require("../database/entities/user.entity");
+const typeorm_2 = require("typeorm");
 let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(passport_jwt_1.Strategy, 'jwt') {
-    constructor(configService, userModel) {
+    constructor(configService, userRepository) {
         super({
             secretOrKey: configService.get('AT_SECRET'),
             jwtFromRequest: passport_jwt_1.ExtractJwt.fromHeader('authorization'),
         });
         this.configService = configService;
-        this.userModel = userModel;
+        this.userRepository = userRepository;
     }
     async validate(payload) {
         const { id } = payload;
-        const user = await this.userModel.findOne({ _id: id });
+        const user = await this.userRepository.findOne(id);
         if (!user) {
             throw new common_1.UnauthorizedException('You are not alowed to do that!');
         }
@@ -41,9 +41,9 @@ let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(pas
 };
 JwtStrategy = __decorate([
     (0, common_1.Injectable)(),
-    __param(1, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
+    __param(1, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
     __metadata("design:paramtypes", [config_1.ConfigService,
-        mongoose_2.Model])
+        typeorm_2.Repository])
 ], JwtStrategy);
 exports.JwtStrategy = JwtStrategy;
 //# sourceMappingURL=jwt.strategy.js.map

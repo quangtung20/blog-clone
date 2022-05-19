@@ -14,21 +14,24 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CategoryService = void 0;
 const common_1 = require("@nestjs/common");
-const mongoose_1 = require("@nestjs/mongoose");
-const mongoose_2 = require("mongoose");
-const category_schema_1 = require("../../database/schemas/category.schema");
+const typeorm_1 = require("@nestjs/typeorm");
+const category_entity_1 = require("../../database/entities/category.entity");
+const typeorm_2 = require("typeorm");
 let CategoryService = class CategoryService {
-    constructor(categoryModel) {
-        this.categoryModel = categoryModel;
+    constructor(categoryRepository) {
+        this.categoryRepository = categoryRepository;
     }
-    async createCategory(user, name) {
+    async createCategory(data) {
+        const { title } = data;
+        const check = await this.categoryRepository.findOne({ title }).catch((error) => {
+            throw new common_1.InternalServerErrorException(error.message);
+        });
+        if (check) {
+            throw new common_1.BadRequestException({ msg: 'This category is already exists' });
+        }
         try {
-            const check = await this.categoryModel.findOne({ name });
-            if (check) {
-                throw new common_1.BadRequestException({ msg: 'This category is already exists' });
-            }
-            const newCat = await this.categoryModel.create({ name });
-            return { newCategory: newCat };
+            await this.categoryRepository.save({ title });
+            return { msg: 'done' };
         }
         catch (error) {
             throw new common_1.InternalServerErrorException({ msg: error.message });
@@ -36,19 +39,23 @@ let CategoryService = class CategoryService {
     }
     async getCategories() {
         try {
-            const categories = await this.categoryModel.find().sort('-createdAt');
+            const categories = await this.categoryRepository.find();
             return { categories };
         }
         catch (error) {
             throw new common_1.InternalServerErrorException({ msg: error.message });
         }
     }
-    async updateCategory(id, name) {
+    async updateCategory(id, title) {
+        const check = await this.categoryRepository.findOne(id);
+        if (!check) {
+            throw new common_1.BadRequestException('Category does not exist.');
+        }
         try {
-            const category = await this.categoryModel.findByIdAndUpdate({
-                _id: id
+            await this.categoryRepository.update({
+                id: id
             }, {
-                name: name.toLowerCase()
+                title: title.toLowerCase()
             });
             return { msg: 'Update Success!' };
         }
@@ -58,7 +65,8 @@ let CategoryService = class CategoryService {
     }
     async deleteCategory(id) {
         try {
-            await this.categoryModel.findByIdAndDelete(id);
+            await this.categoryRepository.delete(id);
+            return { msg: 'success' };
         }
         catch (error) {
             throw new common_1.InternalServerErrorException({ msg: error.message });
@@ -67,8 +75,8 @@ let CategoryService = class CategoryService {
 };
 CategoryService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, mongoose_1.InjectModel)(category_schema_1.Category.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model])
+    __param(0, (0, typeorm_1.InjectRepository)(category_entity_1.Category)),
+    __metadata("design:paramtypes", [typeorm_2.Repository])
 ], CategoryService);
 exports.CategoryService = CategoryService;
 //# sourceMappingURL=category.service.js.map

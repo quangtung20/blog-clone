@@ -1,15 +1,15 @@
 import { Module } from '@nestjs/common';
 import { BlogService } from './blog.service';
 import { BlogController } from './blog.controller';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Blog, BlogSchema } from 'src/database/schemas/blog.schema';
 import { AuthModule } from '../auth/auth.module';
-import { Comment, CommentSchema } from 'src/database/schemas/comment.schema';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Blog } from 'src/database/entities/blog.entity';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Blog.name, schema: BlogSchema }]),
-    MongooseModule.forFeature([{ name: Comment.name, schema: CommentSchema }]),
+    // MongooseModule.forFeature([{ name: Blog.name, schema: BlogSchema }]),
+    // MongooseModule.forFeature([{ name: Comment.name, schema: CommentSchema }]),
+    TypeOrmModule.forFeature([Blog]),
     AuthModule,
   ],
   providers: [BlogService],

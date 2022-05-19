@@ -27,8 +27,8 @@ let UserController = class UserController {
     resetPassword(user, password) {
         return this.userService.resetPassword(user, password);
     }
-    updateUser(user, avatar, name) {
-        return this.userService.updateUser(user, avatar, name);
+    updateUser(user, data) {
+        return this.userService.updateUser(user, data);
     }
 };
 __decorate([
@@ -51,10 +51,9 @@ __decorate([
     (0, common_1.Patch)('user'),
     (0, common_1.UseGuards)((0, role_guard_1.default)('user')),
     __param(0, (0, get_user_decorator_1.GetUser)()),
-    __param(1, (0, common_1.Body)('avatar')),
-    __param(2, (0, common_1.Body)('name')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)
 ], UserController.prototype, "updateUser", null);
 UserController = __decorate([

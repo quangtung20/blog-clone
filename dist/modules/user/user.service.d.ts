@@ -1,11 +1,13 @@
-import { Model } from "mongoose";
-import { UserDocument } from 'src/database/schemas/user.schema';
+import { User } from 'src/database/entities/user.entity';
+import { Repository } from 'typeorm';
 export declare class UserService {
-    private userModel;
-    constructor(userModel: Model<UserDocument>);
-    getUser(id: any): Promise<any>;
-    resetPassword(user: any, password: string): Promise<void>;
-    updateUser(user: any, avatar: string, name: string): Promise<{
+    private userRepository;
+    constructor(userRepository: Repository<User>);
+    getUser(id: any): Promise<User>;
+    resetPassword(user: any, password: string): Promise<{
+        msg: string;
+    }>;
+    updateUser(user: any, data: any): Promise<{
         msg: string;
     }>;
 }

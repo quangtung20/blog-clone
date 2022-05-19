@@ -11,6 +11,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Blog = void 0;
 const typeorm_1 = require("typeorm");
+const sub_category_entity_1 = require("./sub-category.entity");
+const user_entity_1 = require("./user.entity");
 let Blog = class Blog {
 };
 __decorate([
@@ -31,8 +33,20 @@ __decorate([
 ], Blog.prototype, "content", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
+    __metadata("design:type", Number)
+], Blog.prototype, "view", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Blog.prototype, "thumbnail", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, user => user.blogs),
+    __metadata("design:type", user_entity_1.User)
+], Blog.prototype, "user", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => sub_category_entity_1.SubCategory, subCategory => subCategory.blogs),
+    __metadata("design:type", sub_category_entity_1.SubCategory)
+], Blog.prototype, "subCategory", void 0);
 Blog = __decorate([
     (0, typeorm_1.Entity)()
 ], Blog);

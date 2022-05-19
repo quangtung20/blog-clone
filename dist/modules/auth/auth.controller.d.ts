@@ -7,40 +7,16 @@ export declare class AuthController {
     register(newUserDto: INewUser): Promise<{
         msg: string;
     }>;
-    active(active_token: string): Promise<{
-        msg: string;
-    }>;
     login(account: string, password: string, res: Response): Promise<{
         msg: string;
         access_token: string;
-        user: {
-            password: string;
-        };
+        user: any;
     }>;
     logout(res: Response): Promise<{
         msg: string;
     }>;
     refreshToken(req: Request): Promise<{
         access_token: string;
-        user: import("../../database/schemas/user.schema").User & import("mongoose").Document<any, any, any> & {
-            _id: any;
-        };
-    }>;
-    googleLogin(id_token: string, res: Response): Promise<{
-        msg: string;
-        access_token: string;
-        user: {
-            password: string;
-        };
-    }>;
-    facebookLogin(accessToken: string, userId: string, res: Response): Promise<{
-        msg: string;
-        access_token: string;
-        user: {
-            password: string;
-        };
-    }>;
-    forgotPassowrd(account: string): Promise<{
-        msg: string;
+        user: import("../../database/entities/user.entity").User;
     }>;
 }
